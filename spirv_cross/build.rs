@@ -14,7 +14,7 @@ fn main() {
     let is_ios = target_os.is_ok() && target_os.unwrap() == "ios";
 
     let mut build = cc::Build::new();
-    build.cpp(true);
+    build.cpp(true).static_crt(true);
 
     let compiler = build.try_get_compiler();
     let is_clang = compiler.is_ok() && compiler.unwrap().is_like_clang();
