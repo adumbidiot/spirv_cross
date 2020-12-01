@@ -152,6 +152,10 @@ extern "C" {
     ) -> u32;
 
     #[wasm_bindgen(js_namespace = sc_internal)]
+    fn _sc_internal_compiler_set_entry_point(compiler: u32, name: u32, execution_model: u32)
+        -> u32;
+
+    #[wasm_bindgen(js_namespace = sc_internal)]
     fn _sc_internal_compiler_compile(compiler: u32, shader: u32) -> u32;
 
     #[wasm_bindgen(js_namespace = sc_internal)]
@@ -709,6 +713,29 @@ pub fn sc_internal_compiler_get_work_group_size_specialization_constants(
         let constants_ptr = module.get_u32(constants_ptr_to_ptr);
         *constants = constants_ptr as *mut bindings::ScSpecializationConstant;
         module.free(constants_ptr_to_ptr);
+        result
+    }
+}
+
+pub fn sc_internal_compiler_set_entry_point(
+    compiler: *const bindings::ScInternalCompilerBase,
+    name: *const ::std::os::raw::c_char,
+    execution_model: bindings::spv::ExecutionModel,
+) -> bindings::ScInternalResult {
+    let module = emscripten::get_module();
+    unsafe {
+        let name_bytes = CStr::from_ptr(name).to_bytes_with_nul();
+        let name_ptr = module.allocate(name_bytes.len() as u32);
+        module.set_from_u8_slice(name_ptr, name_bytes);
+
+        let result = map_internal_result(_sc_internal_compiler_set_entry_point(
+            compiler as u32,
+            name_ptr.as_offset(),
+            execution_model as u32,
+        ));
+
+        module.free(name_ptr);
+
         result
     }
 }
